@@ -63,114 +63,113 @@ const generateBarcode = async (text) => {
 };
 
 const Usps_Priority = ({ csvData }) => {
-    const data = {
-        fromName: csvData[0][0], // From Name
-        fromCompany: csvData[0][1], // From Company
-        fromStreet: csvData[0][2], // From Street
-        fromStreet2: csvData[0][3], // From Street 2
-        fromCity: csvData[0][4], // From City
-        fromState: csvData[0][5], // From State
-        fromZip: csvData[0][6], // From Zip
-        fromPhone: csvData[0][7], // From Phone
-        toName: csvData[0][8], // To Name
-        toCompany: csvData[0][9], // To Company
-        toStreet: csvData[0][10], // To Street
-        toStreet2: csvData[0][11], // To Street 2
-        toCity: csvData[0][12], // To City
-        toState: csvData[0][13], // To State
-        toZip: csvData[0][14], // To Zip
-        toPhone: csvData[0][15], // To Phone
-        weight: csvData[0][16], // Weight (lbs) (note: index 17 was incorrect, should be 16)
-        length: csvData[0][17], // Length (in)
-        width: csvData[0][18], // Width (in)
-        height: csvData[0][19], // Height (in)
-        description: csvData[0][20], // Description
-        reference1: csvData[0][21], // Reference 1
-        reference2: csvData[0][22], // Reference 2
-        trackingNumber: csvData[0][23], // Tracking Number (note: index 24 was incorrect, should be 23)
-    };
-
-
-    console.log("Mapped Data:", data); // Debug parsed data
-
-
-    const [barcodeData, setBarcodeData] = React.useState("");
+    const [barcodes, setBarcodes] = React.useState(Array(csvData.length).fill(""));
 
     React.useEffect(() => {
-        const fetchBarcode = async () => {
-            const barcode = await generateBarcode(`420${data.toZip}${data.trackingNumber}`);
-            setBarcodeData(barcode);
+        const generateAllBarcodes = async () => {
+            const generatedBarcodes = await Promise.all(
+                csvData.map(row =>
+                    generateBarcode(`420${row[14]}${row[23]}`) // Barcode logic
+                )
+            );
+            setBarcodes(generatedBarcodes);
         };
-        console.log("Data Is " + data.toName)
-        fetchBarcode();
-    }, [data.toZip, data.trackingNumber]);
+
+        generateAllBarcodes();
+    }, [csvData]);
+
 
     return (
         <Document>
-            <Page size="A6">
-                <View>
-                    <View style={styles.row}>
-                        <View style={styles.square}>
-                            <Text style={styles.squareText}>P</Text>
-                        </View>
-                        <View style={[styles.square2]}>
-                            <View style={[styles.InternalBox, { paddingTop: 3.4 }]}>
-                                <Text style={styles.smallText}>PRIORITY MAIL</Text>
-                                <Text style={styles.smallText}>U.S. POSTAGE PAID</Text>
-                                <Text style={styles.smallText}>ATFM</Text>
-                                <Text style={[styles.smallText, { marginBottom: 12.75 }]}>e-Postage</Text>
+            {csvData.map((row, index) => {
+                const data = {
+                    fromName: row[0],
+                    fromCompany: row[1],
+                    fromStreet: row[2],
+                    fromStreet2: row[3],
+                    fromCity: row[4],
+                    fromState: row[5],
+                    fromZip: row[6],
+                    toName: row[8],
+                    toCompany: row[9],
+                    toStreet: row[10],
+                    toStreet2: row[11],
+                    toCity: row[12],
+                    toState: row[13],
+                    toZip: row[14],
+                    trackingNumber: row[23],
+                    description: row[20],
+                    reference1: csvData[0][21], // Reference 1
+                    reference2: csvData[0][22], // Reference 2
+                };
+
+                return (
+                    <Page size="A6" key={`label-${index}`}>
+                        <View>
+                            <View style={styles.row}>
+                                <View style={styles.square}>
+                                    <Text style={styles.squareText}>P</Text>
+                                </View>
+                                <View style={[styles.square2]}>
+                                    <View style={[styles.InternalBox, { paddingTop: 3.4 }]}>
+                                        <Text style={styles.smallText}>PRIORITY MAIL</Text>
+                                        <Text style={styles.smallText}>U.S. POSTAGE PAID</Text>
+                                        <Text style={styles.smallText}>ATFM</Text>
+                                        <Text style={[styles.smallText, { marginBottom: 12.75 }]}>e-Postage</Text>
+                                    </View>
+                                </View>
+                            </View>
+                            <View style={styles.section}>
+                                <Text style={styles.header}>USPS PRIORITY MAIL ®</Text>
+                            </View>
+                            <View style={styles.row}>
+                                <View style={{ fontSize: 7.1, marginLeft: 6.55, marginTop: 5.15 }}>
+                                    <Text style={{ textTransform: 'uppercase' }}>{data.fromName}</Text>
+                                    <Text style={{ textTransform: 'uppercase' }}>{data.fromCompany}</Text>
+                                    <Text style={{ textTransform: 'uppercase' }}>{data.fromStreet}</Text>
+                                    <Text style={{ textTransform: 'uppercase' }}>{data.fromCity} {data.fromState} {data.fromZip}</Text>
+                                </View>
+                                <View style={{ fontSize: 7.1, marginRight: 6.55, marginTop: 5.15, textAlign: 'right', alignItems: 'flex-end', display: 'flex' }}>
+                                    <Text style={{ textTransform: 'uppercase' }}>Mailed From {data.fromZip}</Text>
+                                    <Text>WT: {row[16]}.0000 lb</Text>
+                                </View>
+                            </View>
+                            <View style={styles.row2}>
+                                <View style={{ fontSize: 9.5, marginLeft: 5.95 }}>
+                                    <Text>SHIP</Text>
+                                    <Text>TO:</Text>
+                                </View>
+                                <View style={{ fontSize: 11.05, fontWeight: 700, marginLeft: 8.5, maxWidth: 300 }}>
+                                    <Text style={{ textTransform: 'uppercase' }}>{data.toName}</Text>
+                                    <Text style={{ maxWidth: "90%", flexWrap: "wrap", textTransform: 'uppercase' }}>
+                                        {data.toStreet} {data.toCompany}
+                                    </Text>
+                                    <Text style={{ maxWidth: "90%", flexWrap: "wrap", textTransform: 'uppercase' }}>
+                                        {data.toStreet2}
+                                    </Text>
+                                    <Text style={{ textTransform: 'uppercase' }}>{data.toCity} {data.toState} {data.toZip}</Text>
+                                </View>
+                            </View>
+                            <View style={styles.section2}>
+                                <Text style={{ textAlign: 'center', marginTop: 6.55, fontSize: 12.9, fontWeight: 700 }}>
+                                    USPS TRACKING # EP
+                                </Text>
+                                <View style={{ textAlign: 'center', marginTop: 5.95, alignItems: 'center', alignContent: 'center' }}>
+                                    <Image style={styles.barcode} src={barcodes[index] || ''} />
+                                </View>
+                                <Text style={{ textAlign: 'center', marginTop: 1.85, fontSize: 10.2, fontWeight: 500 }}>
+                                    {data.trackingNumber}
+                                </Text>
+                            </View>
+                            <View style={{ borderWidth: 2, borderColor: '#000', borderStyle: 'solid', height: 10, borderLeft: 0, borderRight: 0, borderBottom: 0, borderTop: 0 }}>
+                                <Text style={{ fontSize: "6px", marginTop: 6, marginBottom: 4, paddingLeft: 1, }}>
+                                    DESC: {data.description}
+                                </Text>
                             </View>
                         </View>
-                    </View>
-                    <View style={styles.section}>
-                        <Text style={styles.header}>USPS PRIORITY MAIL ®</Text>
-                    </View>
-                    <View style={styles.row}>
-                        <View style={{ fontSize: 7.1, marginLeft: 6.55, marginTop: 5.15 }}>
-                            <Text style={{ textTransform: 'uppercase' }}>{data.fromName}</Text>
-                            <Text style={{ textTransform: 'uppercase' }}>{data.fromCompany}</Text>
-                            <Text style={{ textTransform: 'uppercase' }}>{data.fromStreet}</Text>
-                            <Text style={{ textTransform: 'uppercase' }}>{data.fromCity} {data.fromState} {data.fromZip}</Text>
-                        </View>
-                        <View style={{ fontSize: 7.1, marginRight: 6.55, marginTop: 5.15, textAlign: 'right', alignItems: 'flex-end', display: 'flex' }}>
-                            <Text style={{ textTransform: 'uppercase' }}>Mailed From {data.fromZip}</Text>
-                            <Text>WT: {data.weight}.0000 lb</Text>
-                        </View>
-                    </View>
-                    <View style={styles.row2}>
-                        <View style={{ fontSize: 9.5, marginLeft: 5.95 }}>
-                            <Text>SHIP</Text>
-                            <Text>TO:</Text>
-                        </View>
-                        <View style={{ fontSize: 11.05, fontWeight: 700, marginLeft: 8.5, maxWidth: 300 }}>
-                            <Text style={{ textTransform: 'uppercase' }}>{data.toName}</Text>
-                            <Text style={{ maxWidth: "90%", flexWrap: "wrap", textTransform: 'uppercase' }}>
-                                {data.toStreet} {data.toCompany}
-                            </Text>
-                            <Text style={{ maxWidth: "90%", flexWrap: "wrap", textTransform: 'uppercase' }}>
-                                {data.toStreet2}
-                            </Text>
-                            <Text style={{ textTransform: 'uppercase' }}>{data.toCity} {data.toState} {data.toZip}</Text>
-                        </View>
-                    </View>
-                    <View style={styles.section2}>
-                        <Text style={{ textAlign: 'center', marginTop: 6.55, fontSize: 12.9, fontWeight: 700 }}>
-                            USPS TRACKING # EP
-                        </Text>
-                        <View style={{ textAlign: 'center', marginTop: 5.95, alignItems: 'center', alignContent: 'center' }}>
-                            <Image style={styles.barcode} src={barcodeData || ''} />
-                        </View>
-                        <Text style={{ textAlign: 'center', marginTop: 1.85, fontSize: 10.2, fontWeight: 500 }}>
-                            {data.trackingNumber}
-                        </Text>
-                    </View>
-                    <View style={{ borderWidth: 2, borderColor: '#000', borderStyle: 'solid', height: 10, borderLeft: 0, borderRight: 0, borderBottom:0, borderTop:0 }}>
-                        <Text style={{ fontSize: "6px", marginTop: 6,marginBottom: 4, paddingLeft: 1,}}>
-                                                DESC: {data.description}
-                        </Text>
-                    </View>
-                </View>
-            </Page>
+                    </Page>
+                );
+            })}
         </Document>
     );
 };
