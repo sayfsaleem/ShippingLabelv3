@@ -68,10 +68,14 @@ const Usps_Priority = ({ csvData }) => {
     React.useEffect(() => {
         const generateAllBarcodes = async () => {
             const generatedBarcodes = await Promise.all(
-                csvData.map(row =>
-                    generateBarcode(`420${row[14]}${row[23]}`) // Barcode logic
-                )
+                csvData.map(row => {
+                    let part1 = row[14].split("-")[0]; // Get digits before '-'
+                    let formattedPart = part1.length === 4 ? "0" + part1 : part1; // Ensure 5 digits
+
+                    return generateBarcode(`420${formattedPart}${row[23]}`); // Apply barcode logic
+                })
             );
+
             setBarcodes(generatedBarcodes);
         };
 
@@ -79,9 +83,16 @@ const Usps_Priority = ({ csvData }) => {
     }, [csvData]);
 
 
+
     return (
         <Document>
             {csvData.map((row, index) => {
+                const part1 = row[14].split("-")[0]; // Get digits before '-'
+                const toZip = part1.length === 4 ? "0" + part1 : part1; // Ensure 5 digits
+
+                // Format tracking number with spaces every 4 digits
+                const formattedTrackingNumber = row[23].replace(/(\d{4})(?=\d)/g, "$1 ");
+
                 const data = {
                     fromName: row[0],
                     fromCompany: row[1],
@@ -96,8 +107,8 @@ const Usps_Priority = ({ csvData }) => {
                     toStreet2: row[11],
                     toCity: row[12],
                     toState: row[13],
-                    toZip: row[14],
-                    trackingNumber: row[23],
+                    toZip: toZip, // Corrected
+                    trackingNumber: formattedTrackingNumber, // Corrected Formatting
                     description: row[20],
                     reference1: csvData[0][21], // Reference 1
                     reference2: csvData[0][22], // Reference 2
@@ -162,7 +173,7 @@ const Usps_Priority = ({ csvData }) => {
                                 </Text>
                             </View>
                             <View style={{ borderWidth: 2, borderColor: '#000', borderStyle: 'solid', height: 10, borderLeft: 0, borderRight: 0, borderBottom: 0, borderTop: 0 }}>
-                                <Text style={{ fontSize: "6px", marginTop: 6, marginBottom: 4, paddingLeft: 1, }}>
+                                <Text style={{ fontSize: "9px", marginTop: 6, marginBottom: 4, paddingLeft: 1, fontWeight:600 }}>
                                     DESC: {data.description}
                                 </Text>
                             </View>
