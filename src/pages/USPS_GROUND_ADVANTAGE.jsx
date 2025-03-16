@@ -1,492 +1,185 @@
-import React, { useState, useEffect } from "react";
-import {
-  PDFDownloadLink,
-  Page,
-  Text,
-  View,
-  Document,
-  StyleSheet,
-  Image,
-  Font,
-  Svg,
-  Polygon,
-  Rect,
-  Path,
-  ClipPath,
-  Defs,
-  G,
-} from "@react-pdf/renderer";
+import React from "react";
+import { PDFDownloadLink, Page, Text, View, Document, StyleSheet, Image } from "@react-pdf/renderer";
 import bwipjs from "bwip-js";
-
-Font.register({
-  family: "Poppins",
-  fonts: [
-    { src: "/Poppins/Poppins-SemiBold.ttf", fontWeight: 600 },
-    { src: "/Poppins/Poppins-Bold.ttf", fontWeight: 700 },
-    { src: "/Poppins/Poppins-ExtraBold.ttf", fontWeight: 900 },
-  ],
-});
-
+//WRIITE A FUNCTION TO CONSOLE.LOG RANDOM NUMBER
 const styles = StyleSheet.create({
-  semiBoldText: { fontFamily: "Poppins", fontWeight: 600 },
-  boldText: { fontWeight: 700, fontFamily: "Poppins" },
-  underShipTo: {
-    fontWeight: 800,
-    fontFamily: "Poppins",
-    fontSize: "9px",
-    marginTop: -1,
-    // marginTop: 1,
-    transform: "scaleY(1.2)",
-    // paddingBottom: 2,
-    textTransform: "uppercase",
-  },
-  StretchBoldText: {
-    // fontWeight: 700,
-    // fontFamily: "Poppins",
-    // transform: "scaleY(1.3)",
-    fontSize: 16,
-    // letterSpacing: 0.4,
-  },
-  extraboldText: { fontWeight: 900, fontFamily: "Poppins" },
-  barUpperText: {
-    // fontWeight: 700,
-    // fontFamily: "Poppins",
-    fontSize: 22,
-    marginBottom: 4,
-    zIndex: 10,
-    marginTop: -2,
-    marginRight: 10,
-    // transform: "scaleY(1.3)",
-    // letterSpacing: 0.1,
-    textTransform: "uppercase",
-  },
-  normal: {
-    // fontFamily: "Poppins",
-    //  fontWeight: 600,
-    fontSize: 12,
-  },
-  normalTwo: { fontSize: 11 },
-  second: {
-    fontWeight: 300,
-    // fontFamily: "Poppins",
-    // transform: "scaleY(1.2)",
-    fontSize: 36,
-    paddingRight: 18,
-    marginTop: 2,
-  },
-  hager: {
-    // fontWeight: 700,
-    // fontFamily: "Poppins",
-    // transform: "scaleY(1.2)",
-    fontSize: "10px",
-    textTransform: "uppercase",
-  },
-  logo: {
-    // fontWeight: 400,
-    // fontFamily: "Poppins",
-    // transform: "scaleY(1.1)",
-    textAlign: "center",
-
-    fontSize: 74,
-    textTransform: "uppercase",
-  },
+    row: { display: "flex", flexDirection: "row", justifyContent: "space-between" },
+    row2: { display: "flex", flexDirection: "row", marginTop: 34 }, // Reduced by 15%
+    column: { display: "flex", flexDirection: "column" },
+    boldText: { fontWeight: 700, fontSize: 6.8 }, // Reduced by 15%
+    addressText: { fontSize: 6.8, marginBottom: 1.7 }, // Reduced by 15%
+    trackingText: { fontWeight: 700, fontSize: 6.8, marginBottom: 1.7 }, // Reduced by 15%
+    normal: { fontSize: 6.8 }, // Reduced by 15%
+    header: { fontSize: 20.4, fontWeight: 250, textAlign: 'center', marginTop: 4.25 }, // Reduced by 15%
+    subHeader: { fontSize: 6.8, marginBottom: 1.7 }, // Reduced by 15%
+    barcode: { marginVertical: 6.25, height: 53, width: 250, alignItems: 'center', justifyContent: 'center' }, // Reduced by 15%
+    smallText: { fontSize: 6.8, fontWeight: 'bold', fontStyle: 'bold', marginVertical: 4.25 }, // Reduced by 15%
+    smallTextB: { fontSize: 5.95 }, // Reduced by 15%
+    smallBoldText: { fontSize: 6.8, fontWeight: 700 }, // Reduced by 15%
+    section: { borderWidth: 2, borderColor: '#000', borderStyle: 'solid', height: 34, borderLeft: 0, borderRight: 0 }, // Reduced by 15%
+    section2: { borderWidth: 5, borderColor: '#000', borderStyle: 'solid', marginTop: 29.75, borderLeft: 0, borderRight: 0, height: 120 }, // Reduced by 15%
+    sectionSmall: { padding: 4.25, borderWidth: 1, borderColor: '#000', borderStyle: 'solid', marginBottom: 8.5 }, // Reduced by 15%
+    shipTo: { fontWeight: 700, fontSize: 6.8, marginTop: 8.5, marginBottom: 1.7 }, // Reduced by 15%
+    centerText: { textAlign: 'center' },
+    square: { width: 77.5, height: 77.5, borderLeft: 1, borderRight: 1, borderTop: 1, borderColor: 'black', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 0, marginTop: 4.75, borderBottom: 0 }, // Reduced by 15%
+    InternalBox: {
+        paddingTop: 0,
+        marginTop: 0,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    square2: {
+        width: 76.5,
+        height: 59.5,
+        borderWidth: 1,
+        borderColor: '#000',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        margin: 8.5,
+        paddingBottom: 11.9,
+        fontWeight: 250, // This makes the text bold
+        fontStyle: 'bold',
+    },
+    squareText: { fontSize: 59.5, fontWeight: 800 } // Reduced by 15%
 });
 
-const USPS_Ground_Advantage = ({ csvData }) => {
-  const getCurrentDateFormatted = () => {
-    const currentDate = new Date();
-    const year = currentDate?.getFullYear()?.toString()?.slice(2);
-    const month = (currentDate?.getMonth() + 1)?.toString()?.padStart(2, "0");
-    const day = currentDate?.getDate()?.toString()?.padStart(2, "0");
-    return `${year}.${month}.${day}`;
-  };
-
-  const getCurrentMonthYearFormatted = () => {
-    const currentDate = new Date();
-    const year = currentDate.getFullYear();
-    const month = (currentDate.getMonth() + 1).toString().padStart(2, "0");
-    const date = currentDate.getDate().toString().padStart(2, "0");
-    return `${month}/${date}/${year}`;
-  };
-  const getCurrentMonth = () => {
-    const currentDate = new Date();
-    const month = (currentDate.getMonth() + 1).toString().padStart(2, "0");
-    const year = currentDate.getFullYear();
-    return `${month}/${year}`;
-  };
-
-  const generateMaxiCodeImage = (barcodeValueTwo) => {
-    const canvas = document.createElement("canvas");
+const generateBarcode = async (text) => {
     try {
-      bwipjs.toCanvas(canvas, {
-        bcid: "maxicode",
-        text: barcodeValueTwo,
-        scale: 3,
-        height: 10,
-        includetext: true,
-        textxalign: "center",
-      });
-      return canvas.toDataURL();
-    } catch (e) {
-      console.error("Error generating MaxiCode:", e);
-      return null;
+        const canvas = document.createElement('canvas');
+        bwipjs.toCanvas(canvas, {
+            bcid: 'code128',  // Type of barcode
+            text: text,       // Text to encode
+            scale: 7,         // Barcode scale
+            height: 12,       // Barcode height
+        });
+
+        return canvas.toDataURL('image/png');
+    } catch (error) {
+        console.error("Barcode generation error:", error);
+        return nulL;  // Return null in case of error
     }
-  };
-
-  const generateBarCodeImage = (barcodeValueThree) => {
-    const canvas = document.createElement("canvas");
-    try {
-      bwipjs.toCanvas(canvas, {
-        bcid: "code128",
-        text: barcodeValueThree,
-        scale: 1,
-        height: 10,
-        includetext: false,
-        textxalign: "center",
-      });
-      return canvas.toDataURL();
-    } catch (e) {
-      console.error("Error generating Code128:", e);
-      return null;
-    }
-  };
-
-  const generateBarCodeTwoImage = (barcodeValueFour) => {
-    const canvas = document.createElement("canvas");
-    try {
-      bwipjs.toCanvas(canvas, {
-        bcid: "code128",
-        text: barcodeValueFour,
-        scale: 1,
-        height: 10,
-        includetext: false,
-        textxalign: "center",
-      });
-      return canvas.toDataURL();
-    } catch (e) {
-      console.error("Error generating Code128:", e);
-      return null;
-    }
-  };
-
-  const [dailyNumber, setDailyNumber] = useState(1);
-
-  useEffect(() => {
-    const today = new Date().toLocaleDateString();
-    const lastUpdated = localStorage.getItem("lastUpdated");
-    if (!lastUpdated || lastUpdated !== today) {
-      const num = localStorage.getItem("dailyNumber");
-      const updatedNumber = num ? parseInt(num) + 1 : "038";
-      setDailyNumber(updatedNumber);
-      localStorage.setItem("dailyNumber", updatedNumber);
-      localStorage.setItem("lastUpdated", today);
-    } else {
-      const num = localStorage.getItem("dailyNumber");
-      setDailyNumber(parseInt(num));
-    }
-  }, []);
-
-  const MAXICODE_MAX_LENGTH = 60; // Assuming 60 is the max length, adjust as needed
-
-  const truncateMessage = (message, maxLength) => {
-    if (message.length > maxLength) {
-      console.warn('Message too long, truncating');
-      return message.substring(0, maxLength);
-    }
-    return message;
-  };
-
-  return (
-    <Document>
-      {csvData && csvData.filter(data => data && data.length > 0 && data[8]).map((data, index) => {
-        // Check if we have essential data before proceeding
-        if (!data || !data[14] || !data[23]) {
-          return null; // Skip this iteration if essential data is missing
-        }
-
-        const maxiCodeMessage = `[)> 01 96${data[14]?.replace("-", "").padEnd(9, "0")} 840 003 ${data[23]?.slice(0, 2)}${data[23]?.slice(data[23]?.length - 8)} UPSN ${data[23]?.slice(2, 8)} ${dailyNumber < 100 ? "0" + dailyNumber : dailyNumber} 1/1 ${data[16]} N ${data[12]} ${data[13]}`;
-        const truncatedMaxiCodeMessage = truncateMessage(maxiCodeMessage, MAXICODE_MAX_LENGTH);
-        const maxiCodeImage = generateMaxiCodeImage(truncatedMaxiCodeMessage);
-
-        // Ensure all data fields exist
-        for (let i = 0; i < data.length; i++) {
-          if (!data[i]) {
-            data[i] = "";
-          }
-        }
-
-        const zipCode1 = data[14];
-        const zipCode = zipCode1 ? zipCode1.replace("-", "") : "";
-        const formattedZipCode = zipCode.length === 4 ? `0${zipCode}` : zipCode;
-        const barcodeValue = `420${formattedZipCode.length === 5 ? formattedZipCode : formattedZipCode.slice(0, 9)}`;
-        const barcodeOne = generateBarCodeImage(barcodeValue);
-
-        const data14Parts = data[14]?.split(' ') || [];
-        const firstPart = data14Parts[0];
-        const data23 = data[23];
-        const outputString = `420${firstPart}${data23}`;
-        const barcodeTwo = generateBarCodeTwoImage(outputString);
-
-        // Format tracking number with spaces
-        let inputValue = data[23];
-        let formattedValue = [
-          inputValue?.slice(0, 4),
-          inputValue?.slice(4, 8),
-          inputValue?.slice(8, 12),
-          inputValue?.slice(12, 16),
-          inputValue?.slice(16, 20),
-          inputValue?.slice(20),
-        ].filter(Boolean).join(" ");
-
-        // Format zip code
-        let zipArea = data[14];
-        const match = zipArea?.match(/^(\d{4})-(\d{4})$/);
-        if (match) {
-          const firstPart = match[1];
-          if (firstPart.length === 4) {
-            zipArea = `0${firstPart}-${match[2]}`;
-          }
-        }
-
-        return (
-          <Page size="A6" key={index} id={`content-id-${index}`}>
-            <View>
-              <View>
-                <View
-                  style={{
-                    backgroundColor: "#fff",
-                    borderColor: "#000",
-                    height: "100%",
-                    position: "relative",
-                  }}
-                >
-                  <View
-                    style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      marginTop: -1.3,
-                    }}
-                  >
-                    <View
-                      style={{
-                        borderWidth: 1.2,
-                        borderColor: "black",
-                        borderBottomWidth: 0,
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: "26%",
-                        height: "95%",
-                        textAlign: "center",
-                      }}
-                    >
-                      <Text style={styles.logo}>G</Text>
-                    </View>
-                    <View
-                      style={{
-                        borderWidth: 1.2,
-                        borderColor: "black",
-                        padding: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: "28%",
-                        textAlign: "center",
-                        paddingBottom: 6,
-                        paddingTop: 2,
-                        marginRight: 16,
-                      }}
-                    >
-                      <Text style={{ fontSize: 8.3 }}>USPS GROUND</Text>
-                      <Text style={{ fontSize: 8.3 }}>ADVANTAGE</Text>
-                      <Text style={{ fontSize: 8.3 }}>U.S. POSTAGE PAID</Text>
-                      <Text style={{ fontSize: 8.3 }}>ATFM</Text>
-                      <Text style={{ fontSize: 8.3 }}>e-Postage</Text>
-                    </View>
-                  </View>
-                  <View
-                    style={{
-                      marginTop: -2.2,
-                      width: "100%",
-                      height: 1.2,
-                      backgroundColor: "#000",
-                    }}
-                  ></View>
-                  <View
-                    style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      alignItems: "flex-start",
-                      justifyContent: "center",
-                      paddingVertical: 4,
-                      paddingBottom: 7,
-                      textAlign: "center",
-                    }}
-                  >
-                    <Text style={{ fontSize: 16 }}>
-                      USPS GROUND ADVANTAGE
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 8,
-                        marginLeft: 3,
-                        marginTop: 2,
-                        color: "black",
-                      }}
-                    >
-                      TM
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      width: "100%",
-                      height: 1.2,
-                      backgroundColor: "#000",
-                    }}
-                  ></View>
-
-                  <View
-                    style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      alignItems: "flex-start",
-                      justifyContent: "space-between",
-                      padding: 2,
-                      paddingHorizontal: 6,
-                      width: "100%",
-                    }}
-                  >
-                    <View
-                      style={{
-                        fontSize: "7px",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      <Text>{data[0] || ""}</Text>
-                      <Text>{data[2] || ""}</Text>
-                      <Text>
-                        {data[4] ? `${data[4]} ${data[5] || ""} ${data[6] ? (data[6].length === 4 ? `0${data[6]}` : data[6]) : ""}` : ""}
-                      </Text>
-                    </View>
-                    <View
-                      style={{
-                        fontSize: "7px",
-                        textAlign: "right",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "flex-end",
-                        justifyContent: "flex-end",
-                        marginTop: 3,
-                      }}
-                    >
-                      <Text>
-                        Mailed From {data[6] ? (data[6].length === 4 ? `0${data[6]}` : data[6]) : ""}
-                      </Text>
-                      <Text>WT: {data[16] || "0"}.00 oz</Text>
-                    </View>
-                  </View>
-
-                  <View
-                    style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      alignItems: "flex-start",
-                      width: "100%",
-                      textTransform: "uppercase",
-                      gap: 8,
-                      paddingHorizontal: 6,
-                      marginTop: 40,
-                    }}
-                  >
-                    <View style={{ width: "10%" }}>
-                      <Text style={{ fontSize: "8px" }}>SHIP</Text>
-                      <Text style={{ fontSize: "8px" }}>TO:</Text>
-                    </View>
-                    <View style={{ fontSize: "8.5px", color: "black", fontWeight: 'bold', }}>
-                      <Text>{data[8] || ""}</Text>
-                      <Text>{data[9] || ""}</Text>
-                      <Text>{data[10] || ""}</Text>
-                      {data[11] && <Text>{data[11]}</Text>}
-                      <Text
-                        style={styles.hager}
-                      >{`${data[12] || ""} ${data[13] || ""} ${formattedZipCode || ""}`}</Text>
-                    </View>
-                  </View>
-
-                  <View
-                    style={{
-                      position: "absolute",
-                      bottom: 4,
-                      width: "100%",
-                    }}
-                  >
-                    <View
-                      style={{
-                        width: "100%",
-                        height: 4,
-                        backgroundColor: "#000",
-                      }}
-                    ></View>
-                    <View style={{ paddingVertical: 4, paddingTop: 6 }}>
-                      <Text style={{ fontSize: 14, textAlign: "center" }}>
-                        USPS TRACKING # EP
-                      </Text>
-
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "center",
-                          height: 66,
-                          width: 250,
-                          marginHorizontal: "auto",
-                          paddingVertical: 8,
-                        }}
-                      >
-                        {barcodeTwo && <Image src={barcodeTwo} />}
-                      </View>
-                      <Text
-                        style={{
-                          fontSize: "10px",
-                          paddingTop: 3,
-                          fontWeight: 100,
-                          textAlign: "center",
-                        }}
-                      >
-                        {formattedValue}
-                      </Text>
-                    </View>
-                    <View
-                      style={{
-                        width: "100%",
-                        height: 4,
-                        backgroundColor: "#000",
-                      }}
-                    ></View>
-                    {data[20] && (
-                      <Text
-                        style={{
-                          fontSize: "8px",
-                          marginTop: 6,
-                          marginBottom: 4,
-                          paddingLeft: 1,
-                        }}
-                      >
-                        DESC: {data[20]}
-                      </Text>
-                    )}
-                  </View>
-                </View>
-              </View>
-            </View>
-          </Page>
-        );
-      })}
-    </Document>
-  );
 };
 
-export default USPS_Ground_Advantage;
+const Usps_Priority = ({ csvData }) => {
+    const [barcodes, setBarcodes] = React.useState(Array(csvData.length).fill(""));
+
+    React.useEffect(() => {
+        const generateAllBarcodes = async () => {
+            const generatedBarcodes = await Promise.all(
+                csvData.map(row => {
+                    let part1 = row[14].split("-")[0]; // Get digits before '-'
+                    let formattedPart = part1.length === 4 ? "0" + part1 : part1; // Ensure 5 digits
+
+                    return generateBarcode(`420${formattedPart}${row[23]}`); // Apply barcode logic
+                })
+            );
+
+            setBarcodes(generatedBarcodes);
+        };
+
+        generateAllBarcodes();
+    }, [csvData]);
+
+
+
+    return (
+        <Document>
+            {csvData.map((row, index) => {
+                // Format tracking number with spaces every 4 digits
+                const formattedTrackingNumber = row[23].replace(/(\d{4})(?=\d)/g, "$1 ");
+
+                const data = {
+                    fromName: row[0],
+                    fromCompany: row[1],
+                    fromStreet: row[2],
+                    fromStreet2: row[3],
+                    fromCity: row[4],
+                    fromState: row[5],
+                    fromZip: row[6],
+                    toName: row[8],
+                    toCompany: row[9],
+                    toStreet: row[10],
+                    toStreet2: row[11],
+                    toCity: row[12],
+                    toState: row[13],
+                    toZip: row[14],
+                    trackingNumber: formattedTrackingNumber, // Corrected Formatting
+                    description: row[20],
+                    reference1: csvData[0][21], // Reference 1
+                    reference2: csvData[0][22], // Reference 2
+                };
+
+                return (
+                    <Page size="A6" key={`label-${index}`}>
+                        <View>
+                            <View style={styles.row}>
+                                <View style={styles.square}>
+                                    <Text style={styles.squareText}>P</Text>
+                                </View>
+                                <View style={[styles.square2]}>
+                                    <View style={[styles.InternalBox, { paddingTop: 3.4 }]}>
+                                        <Text style={styles.smallText}>PRIORITY MAIL</Text>
+                                        <Text style={styles.smallText}>U.S. POSTAGE PAID</Text>
+                                        <Text style={styles.smallText}>ATFM</Text>
+                                        <Text style={[styles.smallText, { marginBottom: 12.75 }]}>e-Postage</Text>
+                                    </View>
+                                </View>
+                            </View>
+                            <View style={styles.section}>
+                                <Text style={styles.header}>USPS PRIORITY MAIL ®</Text>
+                            </View>
+                            <View style={styles.row}>
+                                <View style={{ fontSize: 7.1, marginLeft: 6.55, marginTop: 5.15 }}>
+                                    <Text style={{ textTransform: 'uppercase' }}>{data.fromName}</Text>
+                                    <Text style={{ textTransform: 'uppercase' }}>{data.fromCompany}</Text>
+                                    <Text style={{ textTransform: 'uppercase' }}>{data.fromStreet}</Text>
+                                    <Text style={{ textTransform: 'uppercase' }}>{data.fromCity} {data.fromState} {data.fromZip}</Text>
+                                </View>
+                                <View style={{ fontSize: 7.1, marginRight: 6.55, marginTop: 5.15, textAlign: 'right', alignItems: 'flex-end', display: 'flex' }}>
+                                    <Text style={{ textTransform: 'uppercase' }}>Mailed From {data.fromZip}</Text>
+                                    <Text>WT: {row[16]}.0000 lb</Text>
+                                </View>
+                            </View>
+                            <View style={styles.row2}>
+                                <View style={{ fontSize: 9.5, marginLeft: 5.95 }}>
+                                    <Text>SHIP</Text>
+                                    <Text>TO:</Text>
+                                </View>
+                                <View style={{ fontSize: 11.05, fontWeight: 700, marginLeft: 8.5, maxWidth: 300 }}>
+                                    <Text style={{ textTransform: 'uppercase' }}>{data.toName}</Text>
+                                    <Text style={{ maxWidth: "90%", flexWrap: "wrap", textTransform: 'uppercase' }}>
+                                        {data.toStreet} {data.toCompany}
+                                    </Text>
+                                    <Text style={{ maxWidth: "90%", flexWrap: "wrap", textTransform: 'uppercase' }}>
+                                        {data.toStreet2}
+                                    </Text>
+                                    <Text style={{ textTransform: 'uppercase' }}>{data.toCity} {data.toState} {data.toZip}</Text>
+                                </View>
+                            </View>
+                            <View style={styles.section2}>
+                                <Text style={{ textAlign: 'center', marginTop: 6.55, fontSize: 12.9, fontWeight: 700 }}>
+                                    USPS TRACKING # EP
+                                </Text>
+                                <View style={{ textAlign: 'center', marginTop: 5.95, alignItems: 'center', alignContent: 'center' }}>
+                                    <Image style={styles.barcode} src={barcodes[index] || ''} />
+                                </View>
+                                <Text style={{ textAlign: 'center', marginTop: 1.85, fontSize: 10.2, fontWeight: 500 }}>
+                                    {data.trackingNumber}
+                                </Text>
+                            </View>
+                            <View style={{ borderWidth: 2, borderColor: '#000', borderStyle: 'solid', height: 10, borderLeft: 0, borderRight: 0, borderBottom: 0, borderTop: 0 }}>
+                                <Text style={{ fontSize: "9px", marginTop: 6, marginBottom: 4, paddingLeft: 1, fontWeight:600 }}>
+                                    DESC: {data.description}
+                                </Text>
+                            </View>
+                        </View>
+                    </Page>
+                );
+            })}
+        </Document>
+    );
+};
+
+export default Usps_Priority;
