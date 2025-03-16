@@ -87,9 +87,6 @@ const Usps_Priority = ({ csvData }) => {
     return (
         <Document>
             {csvData.map((row, index) => {
-                const part1 = row[14].split("-")[0]; // Get digits before '-'
-                const toZip = part1.length === 4 ? "0" + part1 : part1; // Ensure 5 digits
-
                 // Format tracking number with spaces every 4 digits
                 const formattedTrackingNumber = row[23].replace(/(\d{4})(?=\d)/g, "$1 ");
 
@@ -107,7 +104,7 @@ const Usps_Priority = ({ csvData }) => {
                     toStreet2: row[11],
                     toCity: row[12],
                     toState: row[13],
-                    toZip: toZip, // Corrected
+                    toZip: row[14],
                     trackingNumber: formattedTrackingNumber, // Corrected Formatting
                     description: row[20],
                     reference1: csvData[0][21], // Reference 1
